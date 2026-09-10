@@ -66,7 +66,13 @@ RUN useradd --create-home --uid 10001 edgerag \
  && mkdir -p /data /opt/hf && chown -R edgerag:edgerag /data /app /opt/hf
 USER edgerag
 
-VOLUME ["/data"]
+# No `VOLUME ["/data"]` here: Railway's builder rejects the instruction and
+# asks for a Railway Volume instead. The directory is still created, owned by
+# the runtime user and used as EDGERAG_DATA_DIR above, so persistence works
+# exactly as before — mount whatever the platform provides at /data (a Railway
+# Volume, or `docker run -v edgerag-data:/data` locally). Without a mount the
+# container simply keeps its data on its own filesystem, which is what the
+# ephemeral demo already relies on.
 EXPOSE 8000
 
 # Shell form so ${PORT} expands; the model download on first boot is slow, so
