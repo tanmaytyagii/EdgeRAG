@@ -2,7 +2,7 @@
 # Python runtime that serves both the API and the static files.
 
 # ---------------------------------------------------------------- web build ---
-FROM node:22-slim AS web
+FROM node:26-slim AS web
 WORKDIR /web
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
