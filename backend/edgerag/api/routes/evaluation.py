@@ -8,7 +8,7 @@ from ...db.models import EvalCase, EvalRun
 from ...db.session import db_session
 from ...evaluation.runner import run_in_background
 from ...schemas.api import EvalCaseIn, EvalCaseOut, EvalRunRequest
-from ..deps import get_kb
+from ..deps import get_kb, require_writable
 
 router = APIRouter(prefix="/api/evaluation", tags=["evaluation"])
 
@@ -32,7 +32,7 @@ def list_cases(knowledge_base_id: str, session: Session = Depends(db_session)):
     ]
 
 
-@router.post("/cases", response_model=EvalCaseOut, status_code=201)
+@router.post("/cases", response_model=EvalCaseOut, status_code=201, dependencies=[Depends(require_writable)])
 def create_case(knowledge_base_id: str, body: EvalCaseIn, session: Session = Depends(db_session)):
     get_kb(session, knowledge_base_id)
     case = EvalCase(
@@ -51,14 +51,14 @@ def create_case(knowledge_base_id: str, body: EvalCaseIn, session: Session = Dep
     )
 
 
-@router.delete("/cases/{case_id}", status_code=204)
+@router.delete("/cases/{case_id}", status_code=204, dependencies=[Depends(require_writable)])
 def delete_case(case_id: str, session: Session = Depends(db_session)):
     case = session.get(EvalCase, case_id)
     if case:
         session.delete(case)
 
 
-@router.post("/runs", status_code=202)
+@router.post("/runs", status_code=202, dependencies=[Depends(require_writable)])
 def start_run(body: EvalRunRequest, session: Session = Depends(db_session)):
     get_kb(session, body.knowledge_base_id)
     run = EvalRun(

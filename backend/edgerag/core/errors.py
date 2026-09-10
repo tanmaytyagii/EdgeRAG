@@ -82,6 +82,14 @@ class RerankerUnavailableError(ProviderUnavailableError):
     remediation = "Install the reranker extra or set EDGERAG_RERANKER__PROVIDER=none."
 
 
+class DemoModeError(EdgeRAGError):
+    """Raised when a write is attempted against the public read-only demo."""
+
+    code = "demo_read_only"
+    status_code = 403
+    remediation = "Run EdgeRAG locally to index your own documents — see the repository README."
+
+
 class IndexNotReadyError(EdgeRAGError):
     code = "index_not_ready"
     status_code = 409

@@ -30,26 +30,27 @@ confidence-aware abstention and locally hosted LLM generation.
 4. [Why hybrid retrieval matters](#why-hybrid-retrieval-matters)
 5. [Quick start](#quick-start)
 6. [Docker](#docker)
-7. [The doctor command](#the-doctor-command)
-8. [Command line](#command-line)
-9. [Your first knowledge base](#your-first-knowledge-base)
-10. [The interface](#the-interface)
-11. [Retrieval observability](#retrieval-observability)
-12. [Grounding and abstention](#grounding-and-abstention)
-13. [Configuration](#configuration)
-14. [Choosing models](#choosing-models)
-15. [Evaluation](#evaluation)
-16. [API](#api)
-17. [Privacy](#privacy)
-18. [Benchmarks](#benchmarks)
-19. [Limitations](#limitations)
-20. [Screenshots](#screenshots)
-21. [Project layout](#project-layout)
-22. [Development](#development)
-23. [Documentation](#documentation)
-24. [Roadmap](#roadmap)
-25. [Contributing](#contributing)
-26. [License](#license)
+7. [Deploying a public demo](#deploying-a-public-demo)
+8. [The doctor command](#the-doctor-command)
+9. [Command line](#command-line)
+10. [Your first knowledge base](#your-first-knowledge-base)
+11. [The interface](#the-interface)
+12. [Retrieval observability](#retrieval-observability)
+13. [Grounding and abstention](#grounding-and-abstention)
+14. [Configuration](#configuration)
+15. [Choosing models](#choosing-models)
+16. [Evaluation](#evaluation)
+17. [API](#api)
+18. [Privacy](#privacy)
+19. [Benchmarks](#benchmarks)
+20. [Limitations](#limitations)
+21. [Screenshots](#screenshots)
+22. [Project layout](#project-layout)
+23. [Development](#development)
+24. [Documentation](#documentation)
+25. [Roadmap](#roadmap)
+26. [Contributing](#contributing)
+27. [License](#license)
 
 ---
 
@@ -232,6 +233,48 @@ embeddings and no reranker. For semantic search in Docker, change the install li
 `Dockerfile` to `pip install -e "./backend[all]"` and set
 `EDGERAG_EMBEDDING__PROVIDER=sentence-transformers`. See
 [docs/local-models.md](docs/local-models.md).
+
+## Deploying a public demo
+
+EdgeRAG is local-first, and that is the product. It can *also* be published as a
+public demo — a Vercel frontend on a Railway backend, answering over the bundled
+CC0 samples through a hosted model — so people can try it without installing
+anything.
+
+```
+LOCAL                                  PUBLIC DEMO
+your machine → your documents          browser → Vercel → Railway
+  → local embeddings + reranker          → bundled sample documents
+  → local Ollama                         → local embeddings + reranker
+  → private answer                       → hosted model → grounded answer
+```
+
+The demo is **read-only**: ingestion, deletion and settings writes all return
+`403 demo_read_only`, because its storage is ephemeral and its audience is
+anonymous. None of this is on by default, and none of it affects a local install
+— set no environment variables and EdgeRAG behaves exactly as it always has.
+
+Two settings switch it on:
+
+```bash
+EDGERAG_DEMO_MODE=true              # refuse writes
+EDGERAG_DEMO_SEED_ON_STARTUP=true   # index samples/ on first boot
+```
+
+and the model moves from Ollama to any OpenAI-compatible provider:
+
+```bash
+EDGERAG_LLM__PROVIDER=openai-compatible
+EDGERAG_LLM__BASE_URL=https://api.groq.com/openai/v1
+EDGERAG_LLM__MODEL=llama-3.1-8b-instant
+EDGERAG_LLM__API_KEY=...    # server-side only; never sent to the browser
+```
+
+Full instructions — build arguments, environment variables, plan sizing and the
+security checklist — are in **[docs/deployment.md](docs/deployment.md)**.
+
+> Do not upload private documents to a public demo. That is what the local mode
+> is for, and the demo refuses uploads precisely so the question does not arise.
 
 ## The doctor command
 

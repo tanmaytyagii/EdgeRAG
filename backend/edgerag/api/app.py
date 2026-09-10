@@ -54,6 +54,22 @@ def create_app() -> FastAPI:
     for module in (knowledge_bases, documents, chat, search, evaluation, system):
         app.include_router(module.router)
 
+    @app.on_event("startup")
+    def _seed_demo_corpus() -> None:
+        """Index the bundled samples on a fresh hosted deployment.
+
+        No-op unless EDGERAG_DEMO_SEED_ON_STARTUP is set, and a no-op again on
+        any boot where documents already exist. A failure here must never stop
+        the server: the API is still useful without the samples, and the health
+        endpoint will show an empty index rather than a dead container.
+        """
+        try:
+            from ..services.demo_seed import seed_if_empty
+
+            seed_if_empty(settings)
+        except Exception:  # noqa: BLE001
+            log.exception("Demo seeding failed; continuing without samples.")
+
     # Serve the built frontend when it exists, so `edgerag serve` is one process.
     static_dir = Path(__file__).resolve().parents[2] / "static"
     if static_dir.is_dir():

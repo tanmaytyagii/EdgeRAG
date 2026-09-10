@@ -1,6 +1,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useApp } from "../../lib/app-context";
+import { GITHUB_REPO_URL } from "../../lib/identity";
 import { useHotkey } from "../../lib/hooks";
 import { Icon, IconButton, Kbd, Skeleton, StatusDot, cx, useFocusTrap, useScrollLock } from "../ui";
 import { KnowledgeField } from "../spatial/KnowledgeField";
@@ -22,7 +23,7 @@ const ROUTE_TITLES: Record<string, string> = {
 export function AppShell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
-  const { activeKb, healthState } = useApp();
+  const { activeKb, healthState, settings } = useApp();
   const location = useLocation();
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -131,6 +132,8 @@ export function AppShell() {
           </div>
         </header>
 
+        {settings?.demo_mode && <DemoNotice />}
+
         <main id="workspace" className="min-h-0 flex-1 overflow-y-auto">
           <Suspense fallback={<PageFallback />}>
             <Outlet />
@@ -139,6 +142,32 @@ export function AppShell() {
       </div>
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+    </div>
+  );
+}
+
+/** One line stating what this deployment is.
+ *
+ *  The hosted demo indexes a fixed set of public sample documents and answers
+ *  through a hosted model, so it cannot make the privacy claim the local build
+ *  makes. Saying so plainly is the point; it is not a banner ad. */
+function DemoNotice() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-line bg-raised/60 px-4 py-2 text-2xs text-muted sm:px-5">
+      <Icon name="info" size={13} className="text-accent" />
+      <span className="text-fg">Public demo.</span>
+      <span>
+        Read-only, over the bundled sample documents, answered by a hosted model. Do not upload private files
+        here.
+      </span>
+      <a
+        href={GITHUB_REPO_URL}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="ml-auto font-medium text-accent hover:underline"
+      >
+        Run it locally for private documents
+      </a>
     </div>
   );
 }

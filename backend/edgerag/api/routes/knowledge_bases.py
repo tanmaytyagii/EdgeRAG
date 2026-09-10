@@ -10,7 +10,7 @@ from ...db.models import Activity, Conversation, Document, KnowledgeBase
 from ...db.session import db_session
 from ...schemas.api import KnowledgeBaseCreate, KnowledgeBaseOut, KnowledgeBaseUpdate
 from ...services.engine import drop_pipeline, get_pipeline
-from ..deps import get_kb
+from ..deps import get_kb, require_writable
 
 router = APIRouter(prefix="/api/knowledge-bases", tags=["knowledge-bases"])
 
@@ -47,7 +47,7 @@ def list_knowledge_bases(session: Session = Depends(db_session)):
     return [serialize(session, kb) for kb in rows]
 
 
-@router.post("", response_model=KnowledgeBaseOut, status_code=201)
+@router.post("", response_model=KnowledgeBaseOut, status_code=201, dependencies=[Depends(require_writable)])
 def create_knowledge_base(body: KnowledgeBaseCreate, session: Session = Depends(db_session)):
     if session.query(KnowledgeBase).filter(KnowledgeBase.name == body.name).first():
         raise ConflictError(f"A knowledge base named '{body.name}' already exists.")
@@ -74,7 +74,7 @@ def read_knowledge_base(knowledge_base_id: str, session: Session = Depends(db_se
     return serialize(session, get_kb(session, knowledge_base_id))
 
 
-@router.patch("/{knowledge_base_id}", response_model=KnowledgeBaseOut)
+@router.patch("/{knowledge_base_id}", response_model=KnowledgeBaseOut, dependencies=[Depends(require_writable)])
 def update_knowledge_base(knowledge_base_id: str, body: KnowledgeBaseUpdate, session: Session = Depends(db_session)):
     kb = get_kb(session, knowledge_base_id)
     if body.name and body.name != kb.name:
@@ -88,7 +88,7 @@ def update_knowledge_base(knowledge_base_id: str, body: KnowledgeBaseUpdate, ses
     return serialize(session, kb)
 
 
-@router.delete("/{knowledge_base_id}", status_code=204)
+@router.delete("/{knowledge_base_id}", status_code=204, dependencies=[Depends(require_writable)])
 def delete_knowledge_base(knowledge_base_id: str, session: Session = Depends(db_session)):
     kb = get_kb(session, knowledge_base_id)
     pipeline = get_pipeline(kb.collection)
@@ -99,7 +99,12 @@ def delete_knowledge_base(knowledge_base_id: str, session: Session = Depends(db_
     session.add(Activity(kind="kb.deleted", summary=f"Deleted {kb.name}"))
 
 
-@router.post("/{knowledge_base_id}/duplicate", response_model=KnowledgeBaseOut, status_code=201)
+@router.post(
+    "/{knowledge_base_id}/duplicate",
+    response_model=KnowledgeBaseOut,
+    status_code=201,
+    dependencies=[Depends(require_writable)],
+)
 def duplicate_knowledge_base(knowledge_base_id: str, session: Session = Depends(db_session)):
     """Copy the configuration, not the index. Documents are re-ingested on demand."""
     source = get_kb(session, knowledge_base_id)

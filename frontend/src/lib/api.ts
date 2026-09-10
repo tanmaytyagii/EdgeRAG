@@ -5,7 +5,18 @@ import type {
 } from "./types";
 import { ApiFailure } from "./errors";
 
-const BASE = "/api";
+/** Where the API lives.
+ *
+ *  Same-origin by default: `edgerag serve` and the Docker image serve the built
+ *  frontend and the API from one process, and the Vite dev server proxies
+ *  `/api` to localhost:8000. Neither needs configuration.
+ *
+ *  A split deployment (frontend on Vercel, backend on Railway) is the exception,
+ *  and sets VITE_API_BASE_URL to the backend's origin at build time. Only a URL
+ *  is ever put here — no credentials reach the browser.
+ */
+const CONFIGURED = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, "");
+const BASE = CONFIGURED ? `${CONFIGURED}/api` : "/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;

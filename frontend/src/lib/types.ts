@@ -176,6 +176,8 @@ export interface AppSettings {
   uploads: { max_file_bytes: number; allowed_extensions: string[] };
   privacy: { local_only: boolean; telemetry_enabled: boolean; note: string };
   developer_mode: boolean;
+  /** True on the hosted public demo, where writes are refused server-side. */
+  demo_mode?: boolean;
 }
 
 export interface EvalCase {

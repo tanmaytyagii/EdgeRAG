@@ -85,9 +85,25 @@ class RerankerSettings(BaseModel):
 
 
 class LLMSettings(BaseModel):
-    provider: Literal["ollama"] = "ollama"
+    """Which model answers, and where it lives.
+
+    `ollama` is the default and the local-first path: nothing leaves the
+    machine. `openai-compatible` covers every hosted provider that speaks the
+    OpenAI chat-completions dialect (OpenAI, Groq, Together, OpenRouter,
+    DeepSeek), which is what the public demo runs on. Local users are
+    unaffected — they never set these.
+    """
+
+    provider: Literal["ollama", "openai-compatible"] = "ollama"
     model: str = "deepseek-r1:1.5b"
     base_url: str = "http://localhost:11434"
+    api_key: str = Field(
+        "",
+        description=(
+            "Only used by `openai-compatible`. Read from the environment and never "
+            "returned by the API — see the redaction in routes/system.py."
+        ),
+    )
     temperature: float = Field(0.1, ge=0.0, le=2.0)
     max_tokens: int = Field(1024, ge=64, le=32768)
     timeout_seconds: int = Field(180, ge=5, le=3600)
@@ -142,7 +158,9 @@ class Settings(BaseSettings):
         """
         return Path(value).expanduser().resolve()
     host: str = "127.0.0.1"
-    port: int = 8000
+    # Platforms such as Railway, Render and Fly inject the port to bind as
+    # $PORT. EDGERAG_PORT still wins when it is set explicitly.
+    port: int = Field(default_factory=lambda: int(os.environ.get("PORT") or 8000))
     cors_origins: Annotated[tuple[str, ...], NoDecode] = (
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -151,6 +169,19 @@ class Settings(BaseSettings):
     _parse_cors = field_validator("cors_origins", mode="before")(_csv_or_sequence)
     log_level: str = "INFO"
     developer_mode: bool = Field(False, description="Surface stack traces and internal paths to the client.")
+    demo_mode: bool = Field(
+        False,
+        description=(
+            "Public read-only demo. Ingestion, deletion and runtime settings writes are "
+            "refused, so an anonymous visitor cannot fill ephemeral storage, delete the "
+            "sample corpus or repoint the model. Off for local use, where all of that is "
+            "the point."
+        ),
+    )
+    demo_seed_on_startup: bool = Field(
+        False,
+        description="Index the bundled CC0 samples at startup if the database is empty. Used by the demo container.",
+    )
     telemetry_enabled: bool = Field(
         False, description="EdgeRAG ships no remote telemetry. This flag is reserved and unused."
     )

@@ -10,7 +10,7 @@ from ...db.session import db_session
 from ...schemas.api import DocumentOut
 from ...services import ingestion
 from ...services.engine import get_pipeline
-from ..deps import get_kb
+from ..deps import get_kb, require_writable
 
 router = APIRouter(prefix="/api", tags=["documents"])
 
@@ -54,7 +54,12 @@ def list_documents(knowledge_base_id: str, session: Session = Depends(db_session
     return [serialize(d) for d in rows]
 
 
-@router.post("/knowledge-bases/{knowledge_base_id}/documents", response_model=DocumentOut, status_code=202)
+@router.post(
+    "/knowledge-bases/{knowledge_base_id}/documents",
+    response_model=DocumentOut,
+    status_code=202,
+    dependencies=[Depends(require_writable)],
+)
 async def upload_document(
     knowledge_base_id: str,
     file: UploadFile = File(...),
@@ -95,7 +100,12 @@ def document_chunks(document_id: str, session: Session = Depends(db_session)):
     return [c.to_dict() for c in pipeline.bm25.document_chunks(document_id)]
 
 
-@router.post("/documents/{document_id}/reindex", response_model=DocumentOut, status_code=202)
+@router.post(
+    "/documents/{document_id}/reindex",
+    response_model=DocumentOut,
+    status_code=202,
+    dependencies=[Depends(require_writable)],
+)
 def reindex_document(document_id: str, session: Session = Depends(db_session)):
     document = _get(session, document_id)
     document.status = "pending"
@@ -108,14 +118,14 @@ def reindex_document(document_id: str, session: Session = Depends(db_session)):
     return serialize(document)
 
 
-@router.post("/documents/{document_id}/cancel", response_model=DocumentOut)
+@router.post("/documents/{document_id}/cancel", response_model=DocumentOut, dependencies=[Depends(require_writable)])
 def cancel_document(document_id: str, session: Session = Depends(db_session)):
     document = _get(session, document_id)
     ingestion.request_cancel(document_id)
     return serialize(document)
 
 
-@router.delete("/documents/{document_id}", status_code=204)
+@router.delete("/documents/{document_id}", status_code=204, dependencies=[Depends(require_writable)])
 def delete_document(document_id: str, session: Session = Depends(db_session)):
     document = _get(session, document_id)
     kb = get_kb(session, document.knowledge_base_id)

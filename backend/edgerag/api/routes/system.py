@@ -9,6 +9,7 @@ from ...db.models import Activity, Conversation, Document, KnowledgeBase
 from ...db.session import db_session
 from ...schemas.api import SettingsPatch
 from ...services.engine import reset_engine_cache, system_health
+from ..deps import require_writable
 
 router = APIRouter(prefix="/api", tags=["system"])
 
@@ -46,13 +47,17 @@ def read_settings():
         "vector_store": settings.vector_store.model_dump(),
         "retrieval": settings.retrieval.model_dump(),
         "reranker": settings.reranker.model_dump(),
-        "llm": settings.llm.model_dump(),
+        # The hosted-provider key must never reach the browser. `api_key` is
+        # dropped here rather than masked, so there is nothing to leak even in
+        # a screenshot, and the UI has no field that could send it back.
+        "llm": {k: v for k, v in settings.llm.model_dump().items() if k != "api_key"},
         "confidence": settings.confidence.model_dump(),
         "context": settings.context.model_dump(),
         "uploads": {"max_file_bytes": settings.uploads.max_file_bytes,
                     "allowed_extensions": list(settings.uploads.allowed_extensions)},
+        "demo_mode": settings.demo_mode,
         "privacy": {
-            "local_only": True,
+            "local_only": not settings.demo_mode,
             "telemetry_enabled": settings.telemetry_enabled,
             "note": "EdgeRAG makes no outbound network calls except to the model host you configure.",
         },
@@ -60,7 +65,7 @@ def read_settings():
     }
 
 
-@router.patch("/settings")
+@router.patch("/settings", dependencies=[Depends(require_writable)])
 def patch_settings(body: SettingsPatch):
     """Apply runtime settings. Changes to chunking or embeddings only affect
     documents indexed afterwards -- existing indexes are not silently rewritten."""
@@ -71,7 +76,12 @@ def patch_settings(body: SettingsPatch):
     for section in ("chunking", "embedding", "retrieval", "reranker", "llm", "confidence", "context"):
         if section in patch:
             current = getattr(settings, section)
-            updated = current.model_copy(update=patch[section])
+            values = patch[section]
+            if section == "llm":
+                # Credentials come from the server environment only; a client
+                # may retune the model but never inject or replace a key.
+                values = {k: v for k, v in values.items() if k != "api_key"}
+            updated = current.model_copy(update=values)
             setattr(settings, section, updated)
             if section in ("chunking", "embedding"):
                 reindex_required = True

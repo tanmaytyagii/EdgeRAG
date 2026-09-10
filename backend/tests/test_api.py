@@ -195,3 +195,74 @@ def test_chat_stream_commits_the_user_message_before_streaming(client):
             .all()
         ]
     assert roles == ["user", "assistant"]
+
+
+def test_demo_seed_kb_id_is_stable_and_usable_by_chat(tmp_path, monkeypatch):
+    """Regression: the id GET /api/knowledge-bases returns must work in chat.
+
+    The hosted demo has no persistent disk, so every container re-seeds from
+    `samples/`. While the seeded knowledge base took the model's default random
+    uuid4 primary key, its id changed on every deploy: an id captured from an
+    earlier container resolved to nothing afterwards, and chat answered
+    `not_found` for a knowledge base GET had just listed.
+
+    Runs against its own empty data directory so the real startup seeding path
+    executes, exactly as it does in a fresh container.
+    """
+    import json as _json
+
+    from fastapi.testclient import TestClient
+
+    from edgerag.api.app import create_app
+    from edgerag.core.config import reset_settings_cache
+    from edgerag.db.session import reset_engine
+    from edgerag.services.demo_seed import DEMO_KB_ID
+    from edgerag.services.engine import reset_engine_cache
+
+    monkeypatch.setenv("EDGERAG_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("EDGERAG_DEMO_SEED_ON_STARTUP", "true")
+
+    def rebuild():
+        reset_settings_cache()
+        reset_engine()
+        reset_engine_cache()
+
+    rebuild()
+    try:
+        with TestClient(create_app()) as client:
+            listed = [kb for kb in client.get("/api/knowledge-bases").json() if kb["name"] == "EdgeRAG Demo"]
+            assert listed, "startup seeding should have created the demo knowledge base"
+            kb_id = listed[0]["id"]
+            assert listed[0]["document_count"] > 0
+
+            # Derived, not random: a re-seed into a fresh database repeats it.
+            assert kb_id == DEMO_KB_ID
+
+            # The exact id the listing returned must carry both chat routes past
+            # the knowledge-base lookup. Without a local model they are expected
+            # to fail later, at generation — but never with `not_found`.
+            blocking = client.post(
+                "/api/chat", json={"knowledge_base_id": kb_id, "question": "What is EdgeRAG?"}
+            )
+            if blocking.status_code >= 400:
+                assert blocking.json()["error"]["code"] != "not_found", blocking.json()
+
+            with client.stream(
+                "POST", "/api/chat/stream", json={"knowledge_base_id": kb_id, "question": "What is EdgeRAG?"}
+            ) as response:
+                assert response.status_code == 200
+                frames = [
+                    _json.loads(line[5:]) for line in response.iter_lines() if line.startswith("data:")
+                ]
+
+        stages = [f["stage"]["name"] for f in frames if f["type"] == "stage"]
+        errors = [f["error"]["code"] for f in frames if f["type"] == "error"]
+
+        assert "not_found" not in errors, frames
+        # Reaching dense retrieval proves the knowledge base resolved and its
+        # index loaded, which is what this test exists to protect.
+        assert "dense_retrieval" in stages, frames
+    finally:
+        # Hand the shared session fixtures back their own data directory.
+        monkeypatch.undo()
+        rebuild()
