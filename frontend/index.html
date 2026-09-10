@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#090b0f" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fafafc" media="(prefers-color-scheme: light)" />
+    <title>EdgeRAG — private, local-first intelligence for your documents</title>
+    <meta
+      name="description"
+      content="Hybrid retrieval, cross-encoder reranking and local LLMs, with grounded citations — without sending your documents to the cloud."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      /* Resolve the theme before the first paint so a light-mode user never
+         sees a dark flash. Mirrors readInitialTheme() in lib/app-context.tsx. */
+      (function () {
+        try {
+          var stored = localStorage.getItem("edgerag.theme");
+          var theme =
+            stored === "dark" || stored === "light"
+              ? stored
+              : window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+          document.documentElement.dataset.theme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

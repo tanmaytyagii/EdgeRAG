@@ -1,0 +1,41 @@
+# EdgeRAG with a local Ollama alongside it. Everything stays on this machine;
+# no service in this file talks to a third-party API.
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: edgerag-ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  edgerag:
+    build: .
+    container_name: edgerag
+    depends_on:
+      ollama:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      # Inside the compose network Ollama is reachable by service name.
+      EDGERAG_LLM__BASE_URL: http://ollama:11434
+      EDGERAG_LLM__MODEL: ${EDGERAG_MODEL:-deepseek-r1:1.5b}
+      # The base image has no torch, so semantic embeddings are unavailable
+      # unless you rebuild with the [local] extra. See docs/local-models.md.
+      EDGERAG_EMBEDDING__PROVIDER: ${EDGERAG_EMBEDDING_PROVIDER:-hash-dev}
+      EDGERAG_RERANKER__PROVIDER: ${EDGERAG_RERANKER_PROVIDER:-none}
+    volumes:
+      - edgerag-data:/data
+    restart: unless-stopped
+
+volumes:
+  ollama-models:
+  edgerag-data:

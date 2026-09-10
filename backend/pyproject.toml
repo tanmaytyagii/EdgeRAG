@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edgerag"
+version = "0.1.0"
+description = "Private, local-first intelligence for your documents."
+# The distribution long description is declared inline rather than read from a
+# file: the full project README lives at the repository root, outside this
+# project directory, and PEP 517 builds may only read files under the project
+# root. Keeping it inline avoids duplicating the README into backend/.
+readme = { text = """\
+# EdgeRAG
+
+Private, local-first intelligence for your documents.
+
+EdgeRAG is a local-first Retrieval-Augmented Generation workspace that combines
+semantic retrieval, BM25 keyword retrieval, reciprocal-rank fusion, cross-encoder
+reranking, confidence-aware abstention and locally hosted LLM generation.
+
+Install the backend and run `edgerag doctor` to check your environment, then
+`edgerag demo` for a self-contained example.
+
+Full documentation, screenshots and the frontend live in the project repository:
+https://github.com/tanmaytyagii/EdgeRAG
+""", content-type = "text/markdown" }
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "EdgeRAG contributors" }]
+keywords = ["rag", "retrieval", "local-first", "bm25", "reranking", "ollama", "privacy"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Text Processing :: Indexing",
+]
+
+# The base install runs the API, the CLI, ingestion, BM25 retrieval and the
+# hash-dev embedding provider. Semantic search needs the [local] extra.
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+  "pydantic>=2.6",
+  "pydantic-settings>=2.3",
+  "sqlalchemy>=2.0",
+  "typer>=0.12",
+  "rich>=13.7",
+  "httpx>=0.27",
+  "python-multipart>=0.0.9",   # required by FastAPI for multipart uploads; never imported directly
+  "rank-bm25>=0.2.2",
+  "pymupdf>=1.24",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+# Real semantic search and cross-encoder reranking.
+local = [
+  "sentence-transformers>=2.7",
+  "torch>=2.2",
+]
+# Optional persistent vector store backend.
+chroma = ["chromadb>=0.5"]
+# .docx ingestion.
+docx = ["python-docx>=1.1"]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "ruff>=0.4",
+  "mypy>=1.9",
+]
+all = ["edgerag[local,chroma,docx]"]
+
+[project.scripts]
+edgerag = "edgerag.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/tanmaytyagii/EdgeRAG"
+Source = "https://github.com/tanmaytyagii/EdgeRAG"
+Issues = "https://github.com/tanmaytyagii/EdgeRAG/issues"
+
+[tool.setuptools.packages.find]
+include = ["edgerag*"]
+
+[tool.setuptools.package-data]
+edgerag = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = true

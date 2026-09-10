@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest a capability or an improvement.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that EdgeRAG makes hard or impossible?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Including whether existing settings could already get you there.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Retrieval, Reranking, Ingestion, Generation and grounding, UI, CLI, API, Evaluation, Packaging, Docs, Other]
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Fit with the project
+      options:
+        - label: This keeps EdgeRAG local-first (it does not require sending documents to a third-party service)
+          required: true

@@ -1,0 +1,159 @@
+# ---------------------------------------------------------------- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+eggs/
+.eggs/
+sdist/
+wheels/
+*.egg-info/
+*.egg
+MANIFEST
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# Test / lint / type caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+.tox/
+.nox/
+.hypothesis/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+nosetests.xml
+
+# ------------------------------------------------------------ Node / Vite ---
+node_modules/
+.npm/
+.yarn/
+.pnp.*
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# The SPA is compiled into backend/static by `npm run build`. It is a build
+# artifact and is rebuilt on install, so it is not committed.
+backend/static/
+
+# ------------------------------------------------------- EdgeRAG local data ---
+# Everything EdgeRAG writes at runtime lives under EDGERAG_DATA_DIR
+# (~/.edgerag by default). These entries cover the case where a contributor
+# points it at the repository.
+#
+# Anchored with a leading slash on purpose: an unanchored `documents/` would
+# also swallow frontend/src/components/documents/, which is source code.
+/.edgerag/
+/data/
+/uploads/
+/documents/
+/index/
+/indexes/
+
+# SQLite
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Vector stores and keyword indexes
+*.npy
+*.faiss
+chroma/
+chroma_db/
+.chroma/
+*.bm25.jsonl
+
+# Model weights and caches. These are downloaded on first use, never committed.
+/models/
+*.gguf
+*.safetensors
+*.onnx
+*.bin
+*.pt
+*.pth
+.cache/
+.huggingface/
+.ollama/
+
+# ------------------------------------------------------------- Secrets/env ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.*
+credentials.*
+
+# ----------------------------------------------------------------- Logs ---
+/logs/
+*.log
+
+# ---------------------------------------------------------------- Editors ---
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+.\#*
+\#*\#
+
+# --------------------------------------------------------------------- OS ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ------------------------------------------------------------- Archives ---
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# ------------------------------------------------------------- Documents ---
+# EdgeRAG indexes your documents; it does not carry them. PDFs are ignored by
+# default so a local corpus is never committed by accident. The exception is
+# samples/, which holds only original CC0 material written for this repository.
+*.pdf
+!samples/**/*.pdf
+
+# Notebook outputs are stripped before committing; the research notebook is
+# kept for provenance, not for its recorded results.
+.ipynb_checkpoints/
+
+# --------------------------------------------------------------- Temporary ---
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+*.rej

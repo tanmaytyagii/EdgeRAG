@@ -1,0 +1,51 @@
+# Keep dependencies current without churn. Grouped, monthly, and capped so the
+# pull request queue stays reviewable — EdgeRAG pins nothing exotic and does not
+# need daily bumps.
+version: 2
+
+updates:
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: monthly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "backend"]
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      backend-minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # torch is large, slow to install and pinned by the local extra on
+      # purpose. Upgrade it deliberately, not automatically.
+      - dependency-name: torch
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: monthly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "frontend"]
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      frontend-minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: ["dependencies", "ci"]
+    commit-message:
+      prefix: "chore(ci)"
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    labels: ["dependencies", "docker"]
+    commit-message:
+      prefix: "chore(docker)"

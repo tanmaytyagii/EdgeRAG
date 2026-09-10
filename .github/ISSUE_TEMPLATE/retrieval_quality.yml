@@ -1,0 +1,53 @@
+name: Retrieval quality
+description: EdgeRAG retrieved the wrong passages, or abstained when it should not have.
+labels: ["retrieval"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Retrieval issues are usually diagnosable from the Search Explorer, which shows what
+        dense, BM25, fusion and reranking each returned for the query.
+
+  - type: input
+    id: query
+    attributes:
+      label: The query
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have been retrieved
+      description: Describe the passage — please do not paste confidential content.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Where it goes wrong, from the Search Explorer
+      options:
+        - The passage appears in neither dense nor BM25
+        - It appears in BM25 but not dense
+        - It appears in dense but not BM25
+        - It appears in the fused list but is cut before the context
+        - It reaches the context but the answer ignores it
+        - EdgeRAG abstained
+    validations:
+      required: true
+
+  - type: textarea
+    id: settings
+    attributes:
+      label: Retrieval settings and models
+      description: top_k values, chunk size, embedding model, reranker (or none).
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: corpus
+    attributes:
+      label: Corpus size
+      placeholder: "12 documents, ~4,000 chunks"

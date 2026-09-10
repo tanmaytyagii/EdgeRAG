@@ -1,0 +1,75 @@
+name: Bug report
+description: Something does not work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The `edgerag doctor` output below usually answers half the
+        questions a maintainer would otherwise have to ask.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. edgerag ingest ./docs --kb Test
+        2. Ask "..."
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `edgerag doctor`
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: EdgeRAG version
+      placeholder: "0.1.0, or a commit SHA"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS, Linux, Windows, Docker]
+    validations:
+      required: true
+
+  - type: input
+    id: models
+    attributes:
+      label: Models in use
+      placeholder: "deepseek-r1:1.5b, all-MiniLM-L6-v2, ms-marco-MiniLM-L-6-v2"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or errors
+      description: Run with EDGERAG_DEVELOPER_MODE=true for full detail.
+      render: shell
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues
+          required: true
+        - label: I have not pasted any confidential document content
+          required: true
