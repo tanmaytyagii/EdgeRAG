@@ -44,7 +44,7 @@ image binds automatically.
 
 | Argument | Value | Why |
 |---|---|---|
-| `EDGERAG_EXTRAS` | `[local]` | Installs torch, so embeddings and reranking are real. Without it the image can only run `hash-dev` embeddings, which have no semantic meaning and would misrepresent retrieval quality. |
+| `EDGERAG_EXTRAS` | *(leave unset)* | Already defaults to `[local]`, which installs torch so embeddings and reranking are real. Railway passes no build arguments, which is exactly why the default is what it is. Set it to an empty string only if you deliberately want a slim, torch-less image — that build must then also run `EDGERAG_EMBEDDING__PROVIDER=hash-dev`, whose embeddings carry no semantic meaning. |
 | `EDGERAG_PREFETCH_MODELS` | `1` | Bakes the ~120 MB of model weights into the image. Without it every cold start re-downloads them, because the demo has no volume. |
 
 **Environment variables** — *Settings → Variables*:
@@ -83,7 +83,7 @@ service this size for long — the **Hobby plan (~$5/month)** is the cheapest
 practical option, and the RAM is the binding constraint, not the CPU.
 
 *Cheaper alternative:* set `EDGERAG_EMBEDDING__PROVIDER=hash-dev` and
-`EDGERAG_RERANKER__PROVIDER=none`, drop `EDGERAG_EXTRAS`, and the service fits a
+`EDGERAG_RERANKER__PROVIDER=none`, build with `EDGERAG_EXTRAS=''`, and the service fits a
 much smaller instance — but retrieval becomes meaningless, so the demo would
 misrepresent the product. Not recommended.
 

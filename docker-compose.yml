@@ -28,10 +28,12 @@ services:
       # Inside the compose network Ollama is reachable by service name.
       EDGERAG_LLM__BASE_URL: http://ollama:11434
       EDGERAG_LLM__MODEL: ${EDGERAG_MODEL:-deepseek-r1:1.5b}
-      # The base image has no torch, so semantic embeddings are unavailable
-      # unless you rebuild with the [local] extra. See docs/local-models.md.
-      EDGERAG_EMBEDDING__PROVIDER: ${EDGERAG_EMBEDDING_PROVIDER:-hash-dev}
-      EDGERAG_RERANKER__PROVIDER: ${EDGERAG_RERANKER_PROVIDER:-none}
+      # The image ships torch by default (see EDGERAG_EXTRAS in the Dockerfile),
+      # so real embeddings and reranking work out of the box. Override these to
+      # hash-dev / none for a fast, small smoke-test stack — but note that
+      # hash-dev embeddings have no semantic meaning. See docs/local-models.md.
+      EDGERAG_EMBEDDING__PROVIDER: ${EDGERAG_EMBEDDING_PROVIDER:-sentence-transformers}
+      EDGERAG_RERANKER__PROVIDER: ${EDGERAG_RERANKER_PROVIDER:-cross-encoder}
     volumes:
       - edgerag-data:/data
     restart: unless-stopped

@@ -28,16 +28,21 @@ WORKDIR /app
 
 # Which extras to install, as a build argument.
 #
-#   (empty)  default. Small image, no torch. Semantic embeddings and the
-#            cross-encoder are unavailable, so this build must run with
+#   [local]  DEFAULT. Real embeddings and cross-encoder reranking. Pulls torch:
+#            roughly 2 GB of image and ~1.5 GB of RAM at runtime.
+#   (empty)  Small image, no torch. Semantic embeddings and the reranker are
+#            unavailable, so such a build must also set
 #            EDGERAG_EMBEDDING__PROVIDER=hash-dev — fine for smoke tests, and
 #            NOT representative of retrieval quality.
-#   [local]  real embeddings and reranking. Pulls torch: roughly 2 GB of image
-#            and ~1.5 GB of RAM at runtime. This is what a public demo needs if
-#            it is to show EdgeRAG honestly.
 #
-# Build with:  docker build --build-arg EDGERAG_EXTRAS='[local]' .
-ARG EDGERAG_EXTRAS=""
+# The default is `[local]` because the default has to be the one that works.
+# Platforms that build straight from this Dockerfile — Railway among them — pass
+# no build arguments, and a torch-less image there fails at the first question
+# with "The sentence-transformers package is not installed". A default that only
+# suits smoke tests is the wrong default for the image people actually deploy.
+#
+# Override for a slim build:  docker build --build-arg EDGERAG_EXTRAS='' .
+ARG EDGERAG_EXTRAS="[local]"
 
 # Install the backend first so the dependency layer is cached across code edits.
 COPY backend/pyproject.toml ./backend/pyproject.toml

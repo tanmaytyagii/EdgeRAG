@@ -228,10 +228,11 @@ docker compose exec ollama ollama pull deepseek-r1:1.5b
 This starts Ollama and EdgeRAG together with named volumes for models and index data, both
 bound to localhost only.
 
-The default image is deliberately slim and ships **without** torch, so it starts with `hash-dev`
-embeddings and no reranker. For semantic search in Docker, change the install line in the
-`Dockerfile` to `pip install -e "./backend[all]"` and set
-`EDGERAG_EMBEDDING__PROVIDER=sentence-transformers`. See
+The image ships torch by default, so semantic embeddings and the cross-encoder reranker work
+out of the box — the `EDGERAG_EXTRAS` build argument defaults to `[local]`. For a small,
+torch-less image, build with `--build-arg EDGERAG_EXTRAS=''` and run it with
+`EDGERAG_EMBEDDING__PROVIDER=hash-dev` and `EDGERAG_RERANKER__PROVIDER=none`; note that
+`hash-dev` embeddings are deterministic but carry **no semantic meaning**. See
 [docs/local-models.md](docs/local-models.md).
 
 ## Deploying a public demo
