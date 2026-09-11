@@ -214,6 +214,34 @@
   }
 
 
+  /* The shell owns the full visible viewport. `dvh` tracks it as browser
+     chrome and the on-screen keyboard come and go; `vh` does not, which is what
+     pushes a mobile chat composer off screen. The `vh` line is the fallback —
+     a browser without `dvh` simply ignores the second declaration. */
+  .app-shell {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* --------------------------------------------------------------- touch
+
+     Desktop density is deliberate: a professional tool packs controls tightly
+     and a mouse hits a 28px target fine. A finger does not. Rather than scatter
+     responsive size classes through every component, the two control primitives
+     carry a marker class and grow once — on coarse pointers and on the widths
+     where this app is driven by touch. Desktop density is untouched. */
+  @media (max-width: 1023px), (pointer: coarse) {
+    .press,
+    .control {
+      min-height: 2.5rem;
+    }
+
+    /* Icon-only controls need width as well as height to be hittable. */
+    button.press:not(:has(> :not(svg))) {
+      min-width: 2.5rem;
+    }
+  }
+
   /* ------------------------------------------------------------------ fluid
 
      Two different kinds of limit, kept deliberately separate:
@@ -451,7 +479,7 @@
   }
 
   .rag-caption {
-    font-size: clamp(9px, 1.75cqw, 13px);
+    font-size: clamp(10px, 1.75cqw, 13px);
   }
 
   .rag-doc {

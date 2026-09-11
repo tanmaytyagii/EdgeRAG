@@ -47,7 +47,7 @@ export function PipelinePage() {
     <div>
       <PageHeader
         title="Retrieval pipeline"
-        description="Trace one query through every retrieval stage and click a node to see what that stage measured. Generation runs in Chat, so it stays dimmed here."
+        description="Trace one query through every retrieval stage, then open a stage to see what it measured. Generation runs in Chat, so it stays dimmed here."
       />
 
       <div className="border-b border-line py-3">
@@ -73,9 +73,9 @@ export function PipelinePage() {
         {error ? (
           <ErrorState error={error} onRetry={() => void run()} />
         ) : busy && !result ? (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="grid gap-6 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_20rem]">
             <Skeleton className="mx-auto h-[30rem] w-full max-w-sm" />
-            <Skeleton className="h-40" />
+            <Skeleton className="hidden h-40 md:block" />
           </div>
         ) : (
           <PipelineDiagram

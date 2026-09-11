@@ -161,7 +161,7 @@ export function DocumentViewer({
                 >
                   {pageNumber}
                 </span>
-                <span className="font-mono text-[9px] text-faint tnum">{pageChunks.length}</span>
+                <span className="font-mono text-[10px] text-faint tnum">{pageChunks.length}</span>
               </button>
             ))}
           </nav>

@@ -60,7 +60,7 @@ export function AppShell() {
   const pageTitle = ROUTE_TITLES[location.pathname] ?? "EdgeRAG";
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-ink">
+    <div className="app-shell relative flex overflow-hidden bg-ink">
       <KnowledgeField />
       <a
         href="#workspace"
@@ -113,7 +113,7 @@ export function AppShell() {
               onClick={openPalette}
               aria-label="Open the command palette"
               className={cx(
-                "flex h-8 items-center gap-2 rounded border border-line bg-ink px-2.5 text-left text-[13px] text-faint",
+                "press flex h-8 items-center gap-2 rounded border border-line bg-ink px-2.5 text-left text-[13px] text-faint",
                 "transition-colors duration-150 hover:border-line-strong hover:text-muted sm:w-56",
               )}
             >

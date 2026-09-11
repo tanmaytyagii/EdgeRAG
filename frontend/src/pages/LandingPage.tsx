@@ -25,12 +25,12 @@ export function LandingPage() {
         <div className={cx(SHELL, "flex h-14 items-center gap-3")}>
           <Lockup />
           <nav className="ml-auto flex items-center gap-1 sm:gap-3" aria-label="Landing page">
-            <a href="#how" className="hidden rounded px-2 py-1 text-[13px] text-muted transition-colors hover:text-fg sm:block">
+            <a href="#how" className="press hidden items-center rounded px-2 py-1 text-[13px] text-muted transition-colors hover:text-fg sm:flex">
               How it works
             </a>
             <a
               href="#architecture"
-              className="hidden rounded px-2 py-1 text-[13px] text-muted transition-colors hover:text-fg sm:block"
+              className="press hidden items-center rounded px-2 py-1 text-[13px] text-muted transition-colors hover:text-fg sm:flex"
             >
               Architecture
             </a>
@@ -38,7 +38,7 @@ export function LandingPage() {
               href={GITHUB_REPO_URL}
               target="_blank"
               rel="noreferrer noopener"
-              className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] text-muted transition-colors hover:text-fg"
+              className="press flex items-center gap-1.5 rounded px-2 py-1 text-[13px] text-muted transition-colors hover:text-fg"
             >
               <Icon name="github" size={15} />
               <span className="hidden sm:inline">GitHub</span>
@@ -396,7 +396,7 @@ function Footer() {
                     href={GITHUB_REPO_URL}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-fg"
+                    className="flex min-h-[1.75rem] items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-fg"
                   >
                     <Icon name="github" size={14} />
                     EdgeRAG
@@ -407,7 +407,7 @@ function Footer() {
                     href={GITHUB_PROFILE_URL}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-fg"
+                    className="flex min-h-[1.75rem] items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-fg"
                   >
                     <Icon name="external" size={14} />
                     {GITHUB_OWNER}
@@ -420,12 +420,12 @@ function Footer() {
               <p className="text-2xs font-medium uppercase tracking-wider text-faint">Application</p>
               <ul className="mt-2 space-y-1.5">
                 <li>
-                  <Link to="/app" className="text-[13px] text-muted transition-colors hover:text-fg">
+                  <Link to="/app" className="flex min-h-[1.75rem] items-center text-[13px] text-muted transition-colors hover:text-fg">
                     Open EdgeRAG
                   </Link>
                 </li>
                 <li>
-                  <Link to="/app/settings" className="text-[13px] text-muted transition-colors hover:text-fg">
+                  <Link to="/app/settings" className="flex min-h-[1.75rem] items-center text-[13px] text-muted transition-colors hover:text-fg">
                     Settings
                   </Link>
                 </li>

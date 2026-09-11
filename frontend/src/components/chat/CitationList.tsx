@@ -54,7 +54,7 @@ export function CitationList({
                     </span>
                   )}
                 </span>
-                <span className="mt-1 block line-clamp-2 text-2xs leading-relaxed text-muted">
+                <span className="mt-1 line-clamp-2 text-2xs leading-relaxed text-muted">
                   {citation.excerpt}
                 </span>
               </span>

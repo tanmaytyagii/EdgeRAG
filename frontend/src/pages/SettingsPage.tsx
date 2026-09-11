@@ -60,6 +60,14 @@ export function SettingsPage() {
 
   useEffect(() => setDraft(settings), [settings]);
 
+  /** True when the draft differs from what the server last confirmed.
+   *  Drives the Save button's state and the warning below it — without this a
+   *  user can edit a field, switch section, and lose the change silently. */
+  const isDirty = (section: keyof AppSettings): boolean => {
+    if (!draft || !settings) return false;
+    return JSON.stringify(draft[section]) !== JSON.stringify(settings[section]);
+  };
+
   useEffect(() => {
     void api
       .models()
@@ -178,6 +186,7 @@ export function SettingsPage() {
               body="Each stage narrows the funnel. Wider early stages improve recall; a smaller context improves precision and speed."
               onSave={() => void save({ retrieval: draft.retrieval })}
               saving={saving}
+              dirty={isDirty("retrieval")}
             >
               <div className="grid gap-3.5 sm:grid-cols-2">
                 <Field label="Dense top-K" hint="Semantic candidates from the vector index.">
@@ -231,6 +240,7 @@ export function SettingsPage() {
               body="Applies to documents indexed from now on. Re-index existing documents from the Documents page to adopt these values."
               onSave={() => void save({ chunking: draft.chunking })}
               saving={saving}
+              dirty={isDirty("chunking")}
             >
               <div className="grid gap-3.5 sm:grid-cols-2">
                 <Field label="Chunk size" hint="Characters per chunk.">
@@ -256,6 +266,7 @@ export function SettingsPage() {
                 body="Served by Ollama on this machine."
                 onSave={() => void save({ llm: draft.llm })}
                 saving={saving}
+                dirty={isDirty("llm")}
               >
                 <div className="grid gap-3.5 sm:grid-cols-2">
                   <Field
@@ -345,6 +356,7 @@ export function SettingsPage() {
               body="When retrieved evidence is weak, EdgeRAG says so rather than generating an answer the sources do not support."
               onSave={() => void save({ confidence: draft.confidence })}
               saving={saving}
+              dirty={isDirty("confidence")}
             >
               <div className="mb-4">
                 <ToggleRow
@@ -456,6 +468,7 @@ export function SettingsPage() {
                 body="Adds stack traces and internal detail to API errors. Leave it off for everyday use."
                 onSave={() => void save({ developer_mode: draft.developer_mode })}
                 saving={saving}
+                dirty={draft.developer_mode !== settings?.developer_mode}
               >
                 <ToggleRow
                   checked={draft.developer_mode}
@@ -561,12 +574,15 @@ function Card({
   children,
   onSave,
   saving,
+  dirty,
 }: {
   title: string;
   body?: string;
   children?: React.ReactNode;
   onSave?: () => void;
   saving?: boolean;
+  /** Whether this section holds edits the server has not confirmed. */
+  dirty?: boolean;
 }) {
   return (
     <section className="panel surface-1 p-4">
@@ -574,9 +590,15 @@ function Card({
       {body && <p className="mt-1 max-w-prose text-[13px] leading-relaxed text-muted">{body}</p>}
       {children && <div className="mt-4">{children}</div>}
       {onSave && (
-        <div className="mt-4 flex justify-end border-t border-line pt-3">
-          <Button variant="primary" size="sm" loading={saving} onClick={onSave}>
-            Save changes
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-x-3 gap-y-2 border-t border-line pt-3">
+          {dirty && (
+            <p className="mr-auto flex items-center gap-1.5 text-2xs text-warn" role="status">
+              <Icon name="alert" size={12} />
+              Unsaved changes in this section.
+            </p>
+          )}
+          <Button variant="primary" size="sm" loading={saving} disabled={!dirty} onClick={onSave}>
+            {dirty ? "Save changes" : "Saved"}
           </Button>
         </div>
       )}

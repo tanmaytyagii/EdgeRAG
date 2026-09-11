@@ -182,7 +182,7 @@ export function EvaluationsPage() {
               {cases.map((item) => (
                 <li key={item.id} className="bg-surface px-3 py-2.5">
                   <div className="flex items-start gap-2">
-                    <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-fg">{item.question}</p>
+                    <p className="min-w-0 flex-1 break-words text-[13px] leading-relaxed text-fg">{item.question}</p>
                     <IconButton
                       icon="trash"
                       label={`Remove case: ${item.question}`}
@@ -202,7 +202,7 @@ export function EvaluationsPage() {
                         <Badge key={keyword}>{keyword}</Badge>
                       ))}
                       {item.expected_documents.map((doc) => (
-                        <Badge key={doc} tone="dense" icon="file">
+                        <Badge key={doc} tone="dense" icon="file" className="max-w-full break-all text-left">
                           {doc}
                         </Badge>
                       ))}
@@ -258,7 +258,7 @@ export function EvaluationsPage() {
                     </div>
 
                     {run.status === "completed" && run.summary && (
-                      <dl className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                      <dl className="mt-3 sm:grid sm:grid-cols-3 sm:gap-2.5">
                         <Metric label="cases" value={String(run.summary.cases)} />
                         <Metric label="abstained" value={String(run.summary.abstained)} />
                         <Metric label="latency" value={ms(run.summary.mean_latency_ms)} />
@@ -272,6 +272,14 @@ export function EvaluationsPage() {
                         ))}
                       </dl>
                     )}
+
+                    {/* On a pointer device the whole card lighting up on hover
+                        says it is clickable. Touch has no hover, so the phone
+                        layout says it in words. */}
+                    <span className="mt-3 flex items-center justify-end gap-1 text-2xs text-muted sm:hidden">
+                      View case results
+                      <Icon name="chevronRight" size={12} />
+                    </span>
                   </button>
                 </li>
               ))}
@@ -351,7 +359,7 @@ export function EvaluationsPage() {
           <ul className="space-y-3">
             {openRun.results.map((result) => (
               <li key={result.case_id} className="rounded-lg border border-line p-3">
-                <p className="text-[13px] font-medium text-fg">{result.question}</p>
+                <p className="break-words text-[13px] font-medium leading-relaxed text-fg">{result.question}</p>
                 {result.error ? (
                   <p className="mt-1.5 flex items-start gap-1.5 text-2xs text-danger">
                     <Icon name="alert" size={12} className="mt-px" />
@@ -404,14 +412,34 @@ export function EvaluationsPage() {
   );
 }
 
+/** One figure from a run.
+ *
+ *  From `sm` up this is a stacked cell in a dense grid, where truncating a
+ *  label is an acceptable trade for scanning many at once. On a phone that
+ *  same cell is about 160px wide and "context precision" truncates to
+ *  something unreadable, so the phone gets a full-width row with the label
+ *  intact and the value on the right.
+ */
 function Metric({ label, value, help }: { label: string; value: string; help?: string }) {
-  const content = (
-    <div className="min-w-0">
-      <dt className={cx("truncate text-2xs text-muted", help && "cursor-help underline decoration-dotted underline-offset-2")}>
-        {label}
+  return (
+    // dt and dd stay direct children of a div inside the dl, so the pairing
+    // survives; the tooltip lives inside the dt rather than around both.
+    <div
+      className={cx(
+        "flex items-baseline justify-between gap-3 border-b border-line py-1.5",
+        "last:border-b-0 last:pb-0 sm:block sm:border-b-0 sm:py-0",
+      )}
+    >
+      <dt className="min-w-0 text-2xs text-muted sm:truncate">
+        {help ? (
+          <Tooltip label={help}>
+            <span className="cursor-help underline decoration-dotted underline-offset-2">{label}</span>
+          </Tooltip>
+        ) : (
+          label
+        )}
       </dt>
-      <dd className="font-mono text-[13px] text-fg tnum">{value}</dd>
+      <dd className="shrink-0 font-mono text-[13px] text-fg tnum sm:shrink">{value}</dd>
     </div>
   );
-  return help ? <Tooltip label={help}>{content}</Tooltip> : content;
 }

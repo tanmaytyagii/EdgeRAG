@@ -55,7 +55,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       <div className="flex h-14 shrink-0 items-center gap-2 border-b border-line px-3">
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-2 rounded px-1 py-1 text-fg transition-colors hover:bg-raised"
+          className="press flex items-center gap-2 rounded px-1 py-1 text-fg transition-colors hover:bg-raised"
           aria-label="EdgeRAG home"
         >
           <Lockup />
@@ -111,7 +111,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                     onClick={onClose}
                     className={({ isActive }) =>
                       cx(
-                        "group relative flex items-center gap-2.5 rounded px-2.5 py-1.5 text-[13px]",
+                        "press group relative flex items-center gap-2.5 rounded px-2.5 py-1.5 text-[13px]",
                         "transition-colors duration-150 ease-edge",
                         isActive
                           ? "bg-raised font-medium text-fg"
@@ -161,7 +161,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             onClick={onClose}
             className={({ isActive }) =>
               cx(
-                "flex flex-1 items-center gap-2 rounded px-2 py-1.5 text-[13px] transition-colors",
+                "press flex flex-1 items-center gap-2 rounded px-2 py-1.5 text-[13px] transition-colors",
                 isActive ? "bg-raised font-medium text-fg" : "text-muted hover:bg-raised hover:text-fg",
               )
             }
@@ -176,7 +176,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               target="_blank"
               rel="noreferrer noopener"
               aria-label="EdgeRAG on GitHub"
-              className="flex h-7 w-7 items-center justify-center rounded text-muted transition-colors hover:bg-raised hover:text-fg"
+              className="press flex h-7 w-7 items-center justify-center rounded text-muted transition-colors hover:bg-raised hover:text-fg"
             >
               <Icon name="github" size={15} />
             </a>
@@ -186,7 +186,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             <button
               onClick={toggleTheme}
               aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-              className="flex h-7 w-7 items-center justify-center rounded text-muted transition-colors hover:bg-raised hover:text-fg"
+              className="press flex h-7 w-7 items-center justify-center rounded text-muted transition-colors hover:bg-raised hover:text-fg"
             >
               <Icon name={theme === "dark" ? "sun" : "moon"} size={15} />
             </button>

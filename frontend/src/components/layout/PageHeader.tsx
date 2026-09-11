@@ -26,7 +26,10 @@ export function PageHeader({
       )}
     >
       <div className="shell shell-workspace flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-        <div className="min-w-0 flex-1">
+        {/* A real basis, not flex-1: with a zero base size this column just
+            collapses under the actions instead of pushing them onto their own
+            line, which is what the header is supposed to do on a phone. */}
+        <div className="min-w-0 shrink grow basis-[15rem]">
           <h1 className="text-page-title font-semibold text-fg">{title}</h1>
           {description && (
             <p className="mt-1 max-w-prose text-[13px] leading-relaxed text-muted">{description}</p>

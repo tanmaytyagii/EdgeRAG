@@ -51,6 +51,7 @@ export function ExplorerPage() {
   const [error, setError] = useState<ApiError | null>(null);
   const [overrides, setOverrides] = useState<Record<string, number>>({});
   const [viewer, setViewer] = useState<Candidate | null>(null);
+  const [showScores, setShowScores] = useState(false);
 
   const run = async () => {
     if (!activeKb || !query.trim()) return;
@@ -164,6 +165,10 @@ export function ExplorerPage() {
                 is the length of a list the backend returned. */}
             <div className="shrink-0 border-b border-line py-3">
               <div className="shell shell-workspace">
+                <p className="mb-2.5 text-2xs leading-relaxed text-muted">
+                  Each stage narrows the last: both retrievers run, fusion merges them, the reranker
+                  reorders, and only the final few reach the model.
+                </p>
                 <Funnel result={result} />
                 <StageStrip className="mt-3.5" stages={result.trace.stages} totalMs={result.trace.total_ms} />
                 {!result.reranker_applied && (
@@ -176,18 +181,32 @@ export function ExplorerPage() {
               </div>
             </div>
 
-            <Tabs
-              idPrefix="explorer"
-              className="shell shell-workspace"
-              value={stage}
-              onChange={setStage}
-              options={[
-                { value: "dense", label: "Dense", count: result.dense.length, tone: "dense" },
-                { value: "sparse", label: "BM25", count: result.sparse.length, tone: "sparse" },
-                { value: "fused", label: "Fused", count: result.fused.length, tone: "both" },
-                { value: "reranked", label: "Reranked", count: result.reranked.length },
-              ]}
-            />
+            <div className="shell shell-workspace flex flex-wrap items-center justify-between gap-x-4 border-b border-line">
+              <Tabs
+                idPrefix="explorer"
+                className="border-b-0"
+                value={stage}
+                onChange={setStage}
+                options={[
+                  { value: "dense", label: "Dense", count: result.dense.length, tone: "dense" },
+                  { value: "sparse", label: "BM25", count: result.sparse.length, tone: "sparse" },
+                  { value: "fused", label: "Fused", count: result.fused.length, tone: "both" },
+                  { value: "reranked", label: "Reranked", count: result.reranked.length },
+                ]}
+              />
+              {/* Every per-stage score stays available, but not by default: the
+                  leading score and the retriever badge answer the usual question
+                  without turning each row into a dense readout. */}
+              <Button
+                size="sm"
+                variant="ghost"
+                icon="sliders"
+                aria-pressed={showScores}
+                onClick={() => setShowScores((current) => !current)}
+              >
+                {showScores ? "Hide score breakdown" : "Show score breakdown"}
+              </Button>
+            </div>
 
             <TabPanel idPrefix="explorer" value={stage} className="min-h-0 flex-1 overflow-y-auto">
               {rows.length === 0 ? (
@@ -208,6 +227,7 @@ export function ExplorerPage() {
                       candidate={candidate}
                       rank={index + 1}
                       primaryScore={PRIMARY_SCORE[stage]}
+                      showBreakdown={showScores}
                       selected={result.selected.some((selected) => selected.chunk_id === candidate.chunk_id)}
                       onOpen={setViewer}
                     />

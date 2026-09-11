@@ -162,7 +162,7 @@ export function KnowledgeBasesPage() {
                           setActiveKb(kb.id);
                           navigate("/app/chat");
                         }}
-                        className="min-w-0 rounded text-left"
+                        className="press flex min-w-0 items-center rounded text-left"
                       >
                         <h2 className="truncate text-card-title font-semibold text-fg hover:underline">{kb.name}</h2>
                       </button>

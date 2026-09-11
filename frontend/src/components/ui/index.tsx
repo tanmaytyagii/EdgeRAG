@@ -232,7 +232,7 @@ export function CopyButton({ value, label = "Copy", size = "sm" }: { value: stri
 /* ----------------------------------------------------------------- Input */
 
 const CONTROL_BASE =
-  "w-full rounded border bg-ink text-fg placeholder:text-faint transition-colors duration-150 " +
+  "control w-full rounded border bg-ink text-fg placeholder:text-faint transition-colors duration-150 " +
   "border-line hover:border-line-strong focus:border-accent focus:outline-none";
 
 export const Input = React.forwardRef<
@@ -491,7 +491,10 @@ export function Tooltip({
       <span
         role="tooltip"
         className={cx(
-          "pointer-events-none absolute z-toast max-w-[16rem] whitespace-nowrap rounded border border-line-strong",
+          // w-max keeps short labels on one line; the cap plus normal wrapping
+          // stops a long one from running out of its own box.
+          "pointer-events-none absolute z-toast w-max max-w-[16rem] whitespace-normal text-balance",
+          "rounded border border-line-strong",
           "bg-elevated px-2 py-1 text-2xs text-fg opacity-0 shadow-lg transition-opacity duration-150",
           "group-hover/tt:opacity-100 group-focus-within/tt:opacity-100",
           position,
@@ -591,7 +594,9 @@ export function Tabs<T extends string>({
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(option.value)}
             className={cx(
-              "-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-[13px]",
+              // Slightly tighter on narrow screens: four stage tabs overflowed a
+              // 390px viewport by a dozen pixels, clipping a count mid-digit.
+              "-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2 text-[13px] sm:px-3",
               "transition-[color,border-color,background-color] duration-150 ease-edge",
               active
                 ? "border-fg bg-raised/60 font-medium text-fg"
@@ -753,7 +758,7 @@ export function Menu({
                 item.onSelect();
               }}
               className={cx(
-                "flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] transition-colors",
+                "press flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] transition-colors",
                 "disabled:pointer-events-none disabled:opacity-45",
                 item.danger ? "text-danger hover:bg-danger/10" : "text-muted hover:bg-raised hover:text-fg",
               )}

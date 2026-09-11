@@ -288,38 +288,61 @@ export function DocumentsPage() {
             />
           ) : (
             <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line">
-              {visible.map((doc) => (
+              {visible.map((doc) => {
+                // One definition of what you can do to a document, rendered by
+                // both the desktop row and the phone card below.
+                const actions = [
+                  ...(doc.status === "ready"
+                    ? [{ label: "Open", icon: "eye" as const, onSelect: () => setViewerId(doc.id) }]
+                    : []),
+                  {
+                    label: "Re-index",
+                    icon: "refresh" as const,
+                    onSelect: () => void act(() => api.reindexDocument(doc.id), "Re-indexing"),
+                  },
+                  ...(doc.logs.length > 0
+                    ? [{ label: "Ingestion log", icon: "terminal" as const, onSelect: () => setLogsFor(doc) }]
+                    : []),
+                  { label: "Remove", icon: "trash" as const, danger: true, onSelect: () => setDeleting(doc) },
+                ];
+                const cancellable = doc.status === "processing" || doc.status === "pending";
+                const openable = doc.status === "ready";
+
+                return (
                 <li key={doc.id} className="relative bg-surface transition-colors duration-150 hover:z-10 hover:bg-raised/40">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-3">
-                    {/* File type is stated, not implied by a near-identical glyph. */}
+                  {/* ---------------------------------------------- desktop row
+                      A dense line: the scannable form when there is width for
+                      it. Unchanged from the layout this page has always had. */}
+                  <div className="hidden flex-wrap items-center gap-x-3 gap-y-2 px-3 py-3 md:flex">
                     <span
-                      className="flex h-6 w-9 shrink-0 items-center justify-center rounded border border-line bg-raised font-mono text-[9px] uppercase tracking-wide text-muted"
+                      className="flex h-6 w-9 shrink-0 items-center justify-center rounded border border-line bg-raised font-mono text-[10px] uppercase tracking-wide text-muted"
                       aria-hidden="true"
                     >
                       {extensionOf(doc.filename)}
                     </span>
 
                     <button
-                      onClick={() => doc.status === "ready" && setViewerId(doc.id)}
-                      disabled={doc.status !== "ready"}
+                      onClick={() => openable && setViewerId(doc.id)}
+                      disabled={!openable}
                       className={cx(
-                        "min-w-0 flex-1 truncate rounded text-left text-[13px] text-fg",
-                        doc.status === "ready" ? "hover:underline" : "cursor-default",
+                        // `press` only asserts a touch minimum below 1024px or
+                        // on a coarse pointer, where the row is already 64px
+                        // tall for the menu button — so the hit area grows and
+                        // the row does not.
+                        "press min-w-0 flex-1 truncate rounded text-left text-[13px] text-fg",
+                        openable ? "hover:underline" : "cursor-default",
                       )}
                       title={doc.filename}
                     >
                       {doc.filename}
                     </button>
 
-                    {/* Status and metrics ride the same line only where there
-                        is room for them; below md they move to their own row so
-                        the filename never gets squeezed out. */}
-                    <Badge tone={STATUS_TONE[doc.status]} className="hidden shrink-0 md:inline-flex">
+                    <Badge tone={STATUS_TONE[doc.status]} className="shrink-0">
                       {doc.status}
                     </Badge>
 
                     {/* Fixed widths so the numbers line up down the list. */}
-                    <div className="hidden shrink-0 items-center gap-3 font-mono text-2xs text-faint tnum md:flex">
+                    <div className="flex shrink-0 items-center gap-3 font-mono text-2xs text-faint tnum">
                       <span className="w-8 text-right">{doc.page_count > 0 ? `${count(doc.page_count)}p` : ""}</span>
                       <span className="w-20 text-right">
                         {doc.chunk_count > 0 ? `${count(doc.chunk_count)} chunks` : ""}
@@ -329,7 +352,7 @@ export function DocumentsPage() {
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
-                      {(doc.status === "processing" || doc.status === "pending") && (
+                      {cancellable && (
                         <Button
                           size="sm"
                           variant="ghost"
@@ -338,37 +361,80 @@ export function DocumentsPage() {
                           Cancel
                         </Button>
                       )}
-                      <Menu
-                        label={`Actions for ${doc.filename}`}
-                        items={[
-                          ...(doc.status === "ready"
-                            ? [{ label: "Open", icon: "eye" as const, onSelect: () => setViewerId(doc.id) }]
-                            : []),
-                          {
-                            label: "Re-index",
-                            icon: "refresh" as const,
-                            onSelect: () => void act(() => api.reindexDocument(doc.id), "Re-indexing"),
-                          },
-                          ...(doc.logs.length > 0
-                            ? [{ label: "Ingestion log", icon: "terminal" as const, onSelect: () => setLogsFor(doc) }]
-                            : []),
-                          {
-                            label: "Remove",
-                            icon: "trash" as const,
-                            danger: true,
-                            onSelect: () => setDeleting(doc),
-                          },
-                        ]}
-                      />
+                      <Menu label={`Actions for ${doc.filename}`} items={actions} />
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 pb-2.5 font-mono text-2xs text-faint tnum md:hidden">
-                    <Badge tone={STATUS_TONE[doc.status]}>{doc.status}</Badge>
-                    {doc.page_count > 0 && <span>{count(doc.page_count)}p</span>}
-                    {doc.chunk_count > 0 && <span>{count(doc.chunk_count)} chunks</span>}
-                    <span>{bytes(doc.size_bytes)}</span>
-                    <span>{relativeTime(doc.created_at)}</span>
+                  {/* ----------------------------------------------- phone card
+                      A row squeezed into 390px turns the filename — the one
+                      field that identifies the document — into three ellipsised
+                      characters. On a phone the card leads with the full name
+                      over two lines and labels every figure, because a bare
+                      "4p · 9 chunks" means nothing without its nouns. */}
+                  <div className="px-3 py-3 md:hidden">
+                    <div className="flex items-start gap-2.5">
+                      <span
+                        className="mt-0.5 flex h-6 w-9 shrink-0 items-center justify-center rounded border border-line bg-raised font-mono text-[10px] uppercase tracking-wide text-muted"
+                        aria-hidden="true"
+                      >
+                        {extensionOf(doc.filename)}
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <button
+                          onClick={() => openable && setViewerId(doc.id)}
+                          disabled={!openable}
+                          className={cx(
+                            "press -my-1.5 flex w-full items-center rounded py-1.5 text-left text-[13px] leading-snug text-fg",
+                            // Two lines of a real filename beat one line of an
+                            // ellipsis; the title carries the rest either way.
+                            "line-clamp-2 break-words",
+                            openable ? "hover:underline" : "cursor-default",
+                          )}
+                          title={doc.filename}
+                        >
+                          {doc.filename}
+                        </button>
+                        <Badge tone={STATUS_TONE[doc.status]} className="mt-1">
+                          {doc.status}
+                        </Badge>
+                      </div>
+
+                      <Menu label={`Actions for ${doc.filename}`} items={actions} />
+                    </div>
+
+                    <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-line pt-2.5">
+                      {doc.page_count > 0 && (
+                        <div>
+                          <dt className="text-2xs text-muted">Pages</dt>
+                          <dd className="font-mono text-[13px] text-fg tnum">{count(doc.page_count)}</dd>
+                        </div>
+                      )}
+                      {doc.chunk_count > 0 && (
+                        <div>
+                          <dt className="text-2xs text-muted">Chunks</dt>
+                          <dd className="font-mono text-[13px] text-fg tnum">{count(doc.chunk_count)}</dd>
+                        </div>
+                      )}
+                      <div>
+                        <dt className="text-2xs text-muted">Size</dt>
+                        <dd className="font-mono text-[13px] text-fg tnum">{bytes(doc.size_bytes)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-2xs text-muted">Added</dt>
+                        <dd className="font-mono text-[13px] text-fg tnum">{relativeTime(doc.created_at)}</dd>
+                      </div>
+                    </dl>
+
+                    {cancellable && (
+                      <Button
+                        size="sm"
+                        className="mt-3 w-full"
+                        onClick={() => void act(() => api.cancelDocument(doc.id), "Cancelling")}
+                      >
+                        Cancel indexing
+                      </Button>
+                    )}
                   </div>
 
                   {(doc.status === "processing" || doc.status === "pending") && (
@@ -406,7 +472,8 @@ export function DocumentsPage() {
                     </div>
                   )}
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </PageBody>

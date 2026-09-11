@@ -22,12 +22,16 @@ export function CandidateRow({
   primaryScore,
   onOpen,
   selected,
+  showBreakdown = false,
 }: {
   candidate: Candidate;
   rank: number;
   primaryScore: "rerank" | "fusion" | "dense" | "sparse";
   onOpen?: (candidate: Candidate) => void;
   selected?: boolean;
+  /** Reveal every per-stage score. Off by default: the leading score and the
+   *  retriever badge answer the common question on their own. */
+  showBreakdown?: boolean;
 }) {
   const value =
     primaryScore === "rerank"
@@ -74,23 +78,35 @@ export function CandidateRow({
             </span>
           </span>
 
-          <span className="mt-1.5 block line-clamp-2 text-[13px] leading-relaxed text-fg/85">
+          <span className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-fg/85">
             {candidate.preview}
           </span>
 
-          <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-2xs text-faint tnum">
-            {candidate.dense_rank !== null && (
-              <span>
-                dense #{candidate.dense_rank} · {fmtScore(candidate.dense_score, 3)}
-              </span>
-            )}
-            {candidate.sparse_rank !== null && (
-              <span>
-                bm25 #{candidate.sparse_rank} · {fmtScore(candidate.sparse_score, 2)}
-              </span>
-            )}
-            {candidate.fusion_score !== null && <span>rrf {fmtScore(candidate.fusion_score, 5)}</span>}
-          </span>
+          {/* The per-stage breakdown is the interesting part for someone
+              debugging retrieval and noise for everyone else, so it is a
+              disclosure rather than a wall of numbers. The badge above already
+              says which retrievers found this chunk; these are the scores
+              behind that. */}
+          {showBreakdown && (
+            <span
+              className={cx(
+                "mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-2xs text-faint tnum",
+                "motion-safe:animate-fade-in",
+              )}
+            >
+              {candidate.dense_rank !== null && (
+                <span>
+                  dense #{candidate.dense_rank} · {fmtScore(candidate.dense_score, 3)}
+                </span>
+              )}
+              {candidate.sparse_rank !== null && (
+                <span>
+                  bm25 #{candidate.sparse_rank} · {fmtScore(candidate.sparse_score, 2)}
+                </span>
+              )}
+              {candidate.fusion_score !== null && <span>rrf {fmtScore(candidate.fusion_score, 5)}</span>}
+            </span>
+          )}
         </span>
 
         <span className="shrink-0 text-right">
